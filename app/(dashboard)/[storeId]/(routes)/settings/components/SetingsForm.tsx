@@ -18,6 +18,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { toast } from "@pheralb/toast";
+import axios from "axios";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { AlertModal } from "@/components/modals/AlertModal";
 
 interface SetingsFormProps {
   initialData: Store;
@@ -32,6 +37,8 @@ type SetingsFormValue = z.infer<typeof SetingsFormSchema>;
 export const SetingsForm: React.FC<SetingsFormProps> = ({ initialData }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const params = useParams();
+  const router = useRouter();
 
   const form = useForm<SetingsFormValue>({
     resolver: zodResolver(SetingsFormSchema),
@@ -39,11 +46,32 @@ export const SetingsForm: React.FC<SetingsFormProps> = ({ initialData }) => {
   });
 
   const onSubmit = async (values: SetingsFormValue) => {
-    console.log(values);
+    try {
+      setLoading(true);
+      await axios.patch(`/api/stores/${params.storeId}`, values);
+      router.refresh();
+      toast.success({
+        text: "Success",
+        description: "Store updated successfully",
+      });
+    } catch (error) {
+      toast.error({
+        text: "Something went wrong",
+        description: "Please try again",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
+      <AlertModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onConfirm={() => console.log("confirm")}
+        loading={loading}
+      />
       <div className="flex items-center justify-between">
         <HeaDing title="Settings" description="Manage store preference" />
         <Button

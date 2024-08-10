@@ -23,6 +23,8 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { AlertModal } from "@/components/modals/AlertModal";
+import { ApiAlert } from "@/components/ui/api-alert";
+import { useOrigin } from "@/hooks/useOrigin";
 
 interface SetingsFormProps {
   initialData: Store;
@@ -39,6 +41,7 @@ export const SetingsForm: React.FC<SetingsFormProps> = ({ initialData }) => {
   const [loading, setLoading] = useState(false);
   const params = useParams();
   const router = useRouter();
+  const origin = useOrigin();
 
   const form = useForm<SetingsFormValue>({
     resolver: zodResolver(SetingsFormSchema),
@@ -64,12 +67,33 @@ export const SetingsForm: React.FC<SetingsFormProps> = ({ initialData }) => {
     }
   };
 
+  async function onDelete() {
+    try {
+      setLoading(true);
+      await axios.delete(`/api/stores/${params.storeId}`);
+      router.refresh();
+      router.push("/");
+      toast.success({
+        text: "Success",
+        description: "Store deleted successfully",
+      });
+    } catch (error) {
+      toast.error({
+        text: "Something went wrong",
+        description: "Please try again",
+      });
+    } finally {
+      setLoading(false);
+      setOpen(false);
+    }
+  }
+
   return (
     <>
       <AlertModal
         isOpen={open}
         onClose={() => setOpen(false)}
-        onConfirm={() => console.log("confirm")}
+        onConfirm={onDelete}
         loading={loading}
       />
       <div className="flex items-center justify-between">
@@ -116,6 +140,12 @@ export const SetingsForm: React.FC<SetingsFormProps> = ({ initialData }) => {
           </Button>
         </form>
       </Form>
+      <Separator />
+      <ApiAlert
+        title="NEXT_PUBLIC_API_URL"
+        description={`${origin}/api/${params.storeId}`}
+        variant="public"
+      />
     </>
   );
 };

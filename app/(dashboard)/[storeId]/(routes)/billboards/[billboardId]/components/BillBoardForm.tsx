@@ -141,7 +141,7 @@ export const BillBoardForm: React.FC<BillBoardFormProps> = ({
                 <FormControl>
                   <ImageUpload
                     disabled={loading}
-                    value={field.value ? [field.value] : []}
+                    value=""
                     onChange={(url) => field.onChange(url)}
                     onRemove={() => field.onChange("")}
                   />
